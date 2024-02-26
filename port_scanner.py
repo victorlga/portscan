@@ -1,3 +1,4 @@
+import csv
 import socket
 import threading
 from queue import Queue
@@ -5,14 +6,23 @@ import argparse
 import ipaddress
 
 # Defining a list of well-known ports
-well_known_ports = {
-    21: 'FTP',
-    22: 'SSH',
-    23: 'TELNET',
-    25: 'SMTP',
-    80: 'HTTP',
-    443: 'HTTPS',
-}
+csv_file = open('well_known_ports.csv', 'r')
+csv_reader = csv.reader(csv_file)
+
+next(csv_reader)
+
+well_known_ports = {}
+for line in csv_reader:
+
+    port_val_not_empty = line[1] and line[0]
+    if line[3] not in ('Unassigned', 'Reserved') and port_val_not_empty:
+
+        if '-' in line[1]:
+            start, end = line[1].split('-')
+            for port in range(int(start), int(end) + 1):
+                well_known_ports[port] = line[0]
+        else:
+            well_known_ports[int(line[1])] = line[0]
 
 # Function to scan a single port
 def scan_port(ip, port, timeout=1):
